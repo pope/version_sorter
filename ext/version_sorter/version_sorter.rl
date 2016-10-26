@@ -15,6 +15,9 @@
 #include <assert.h>
 #include <ruby.h>
 
+#define MAX_COMP 16
+#define MAX_ITEMS 512
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 typedef int compare_callback_t(const void *, const void *);
 
@@ -36,7 +39,7 @@ struct version_number {
 			uint16_t offset;
 			uint16_t len;
 		} string;
-	} comp[1];
+	} comp[MAX_COMP];
 };
 
 static int
@@ -90,28 +93,21 @@ static int
 version_compare_cb(const void *a, const void *b)
 {
 	return compare_version_number(
-		(*(const struct version_number * const *)a),
-		(*(const struct version_number * const *)b));
+		(const struct version_number *)a,
+		(const struct version_number *)b);
 }
 
 static int
 version_compare_cb_r(const void *a, const void *b)
 {
 	return -compare_version_number(
-		(*(const struct version_number * const *)a),
-		(*(const struct version_number * const *)b));
+		(const struct version_number *)a,
+		(const struct version_number *)b);
 }
 
 static struct version_number *
-grow_version_number(struct version_number *version, uint new_size)
-{
-	return xrealloc(version,
-			(sizeof(struct version_number) +
-			 sizeof(union version_comp) * (new_size - 1)));
-}
-
-static struct version_number *
-parse_version_number(const char *string, long len)
+parse_version_number(
+		struct version_number *version, const char *string, long len)
 {
 	uint32_t num_flags = 0x0;
 	uint32_t number = 0;
@@ -121,13 +117,10 @@ parse_version_number(const char *string, long len)
 	int cs;
 	const char *start = NULL;
 
-	struct version_number *version = grow_version_number(NULL, comp_alloc);
-
 	%%{
 		action start {
 			if (comp_n >= comp_alloc) {
-				comp_alloc += 4;
-				version = grow_version_number(version, comp_alloc);
+				goto FINALIZE;
 			}
 			start = p;
 		}
@@ -181,6 +174,7 @@ parse_version_number(const char *string, long len)
 		write exec;
 	}%%
 
+FINALIZE:
 	version->original = string;
 	version->num_flags = num_flags;
 	version->size = (int32_t)comp_n;
@@ -193,7 +187,9 @@ rb_version_sort_1(VALUE rb_self, VALUE rb_version_array, compare_callback_t cmp)
 {
 	(void)rb_self;  // Unused.
 
-	struct version_number **versions;
+
+	struct version_number *versions = NULL;
+	struct version_number versions_stack[MAX_ITEMS];
 	long length, i;
 	VALUE *rb_version_ptr;
 
@@ -203,7 +199,11 @@ rb_version_sort_1(VALUE rb_self, VALUE rb_version_array, compare_callback_t cmp)
 	if (!length)
 		return rb_ary_new();
 
-	versions = xcalloc(length, sizeof(struct version_number *));
+	if (length <= MAX_ITEMS) {
+		versions = &versions_stack[0];
+	} else {
+		versions = xcalloc(length, sizeof(struct version_number));
+	}
 
 	for (i = 0; i < length; ++i) {
 		VALUE rb_version, rb_version_string;
@@ -214,19 +214,22 @@ rb_version_sort_1(VALUE rb_self, VALUE rb_version_array, compare_callback_t cmp)
 		else
 			rb_version_string = rb_version;
 
-		versions[i] = parse_version_number(
-				RSTRING_PTR(rb_version_string), RSTRING_LEN(rb_version_string));
-		versions[i]->rb_version = rb_version;
+		parse_version_number(
+				&versions[i],
+				RSTRING_PTR(rb_version_string),
+				RSTRING_LEN(rb_version_string));
+		versions[i].rb_version = rb_version;
 	}
 
-	qsort(versions, (size_t)length, sizeof(struct version_number *), cmp);
+	qsort(versions, (size_t)length, sizeof(struct version_number), cmp);
 	rb_version_ptr = RARRAY_PTR(rb_version_array);
 
 	for (i = 0; i < length; ++i) {
-		rb_version_ptr[i] = versions[i]->rb_version;
-		xfree(versions[i]);
+		rb_version_ptr[i] = versions[i].rb_version;
 	}
-	xfree(versions);
+	if (length > MAX_ITEMS) {
+		xfree(versions);
+	}
 	return rb_version_array;
 }
 

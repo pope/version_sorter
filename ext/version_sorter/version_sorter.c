@@ -17,13 +17,16 @@
 #include <assert.h>
 #include <ruby.h>
 
+#define MAX_COMP 16
+#define MAX_ITEMS 512
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 typedef int compare_callback_t(const void *, const void *);
 
 void Init_version_sorter(void);
 
 
-#line 27 "version_sorter.c"
+#line 30 "version_sorter.c"
 static const int parser_start = 8;
 static const int parser_first_final = 8;
 static const int parser_error = 0;
@@ -31,7 +34,7 @@ static const int parser_error = 0;
 static const int parser_en_main = 8;
 
 
-#line 26 "version_sorter.rl"
+#line 29 "version_sorter.rl"
 
 
 struct version_number {
@@ -45,7 +48,7 @@ struct version_number {
 			uint16_t offset;
 			uint16_t len;
 		} string;
-	} comp[1];
+	} comp[MAX_COMP];
 };
 
 static int
@@ -99,28 +102,21 @@ static int
 version_compare_cb(const void *a, const void *b)
 {
 	return compare_version_number(
-		(*(const struct version_number * const *)a),
-		(*(const struct version_number * const *)b));
+		(const struct version_number *)a,
+		(const struct version_number *)b);
 }
 
 static int
 version_compare_cb_r(const void *a, const void *b)
 {
 	return -compare_version_number(
-		(*(const struct version_number * const *)a),
-		(*(const struct version_number * const *)b));
+		(const struct version_number *)a,
+		(const struct version_number *)b);
 }
 
 static struct version_number *
-grow_version_number(struct version_number *version, uint new_size)
-{
-	return xrealloc(version,
-			(sizeof(struct version_number) +
-			 sizeof(union version_comp) * (new_size - 1)));
-}
-
-static struct version_number *
-parse_version_number(const char *string, long len)
+parse_version_number(
+		struct version_number *version, const char *string, long len)
 {
 	uint32_t num_flags = 0x0;
 	uint32_t number = 0;
@@ -130,15 +126,13 @@ parse_version_number(const char *string, long len)
 	int cs;
 	const char *start = NULL;
 
-	struct version_number *version = grow_version_number(NULL, comp_alloc);
-
 	
-#line 137 "version_sorter.c"
+#line 131 "version_sorter.c"
 	{
 	cs = parser_start;
 	}
 
-#line 142 "version_sorter.c"
+#line 136 "version_sorter.c"
 	{
 	if ( p == pe )
 		goto _test_eof;
@@ -166,18 +160,18 @@ case 8:
 		goto tr3;
 	goto st1;
 tr12:
-#line 159 "version_sorter.rl"
+#line 152 "version_sorter.rl"
 	{
 			version->comp[comp_n].string.offset = (uint16_t)(start - string);
 			version->comp[comp_n].string.len = (uint16_t)(p - start);
 		}
-#line 164 "version_sorter.rl"
+#line 157 "version_sorter.rl"
 	{
 			comp_n++;
 		}
 	goto st1;
 tr16:
-#line 149 "version_sorter.rl"
+#line 142 "version_sorter.rl"
 	{
 			if (overflown) {
 				version->comp[comp_n].string.offset = (uint16_t)(start - string);
@@ -187,7 +181,7 @@ tr16:
 				num_flags |= (1 << comp_n);
 			}
 		}
-#line 164 "version_sorter.rl"
+#line 157 "version_sorter.rl"
 	{
 			comp_n++;
 		}
@@ -196,7 +190,7 @@ st1:
 	if ( ++p == pe )
 		goto _test_eof1;
 case 1:
-#line 200 "version_sorter.c"
+#line 194 "version_sorter.c"
 	if ( (*p) == 45 )
 		goto tr4;
 	if ( (*p) < -16 ) {
@@ -218,17 +212,16 @@ case 1:
 		goto tr3;
 	goto st1;
 tr1:
-#line 127 "version_sorter.rl"
+#line 121 "version_sorter.rl"
 	{
 			if (comp_n >= comp_alloc) {
-				comp_alloc += 4;
-				version = grow_version_number(version, comp_alloc);
+				goto FINALIZE;
 			}
 			start = p;
 		}
 	goto st2;
 tr17:
-#line 149 "version_sorter.rl"
+#line 142 "version_sorter.rl"
 	{
 			if (overflown) {
 				version->comp[comp_n].string.offset = (uint16_t)(start - string);
@@ -238,15 +231,14 @@ tr17:
 				num_flags |= (1 << comp_n);
 			}
 		}
-#line 164 "version_sorter.rl"
+#line 157 "version_sorter.rl"
 	{
 			comp_n++;
 		}
-#line 127 "version_sorter.rl"
+#line 121 "version_sorter.rl"
 	{
 			if (comp_n >= comp_alloc) {
-				comp_alloc += 4;
-				version = grow_version_number(version, comp_alloc);
+				goto FINALIZE;
 			}
 			start = p;
 		}
@@ -255,7 +247,7 @@ st2:
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
-#line 259 "version_sorter.c"
+#line 251 "version_sorter.c"
 	if ( (*p) == 45 )
 		goto tr4;
 	if ( (*p) < -16 ) {
@@ -280,36 +272,34 @@ case 2:
 		goto tr3;
 	goto st1;
 tr4:
-#line 127 "version_sorter.rl"
+#line 121 "version_sorter.rl"
 	{
 			if (comp_n >= comp_alloc) {
-				comp_alloc += 4;
-				version = grow_version_number(version, comp_alloc);
+				goto FINALIZE;
 			}
 			start = p;
 		}
 	goto st9;
 tr14:
-#line 159 "version_sorter.rl"
+#line 152 "version_sorter.rl"
 	{
 			version->comp[comp_n].string.offset = (uint16_t)(start - string);
 			version->comp[comp_n].string.len = (uint16_t)(p - start);
 		}
-#line 164 "version_sorter.rl"
+#line 157 "version_sorter.rl"
 	{
 			comp_n++;
 		}
-#line 127 "version_sorter.rl"
+#line 121 "version_sorter.rl"
 	{
 			if (comp_n >= comp_alloc) {
-				comp_alloc += 4;
-				version = grow_version_number(version, comp_alloc);
+				goto FINALIZE;
 			}
 			start = p;
 		}
 	goto st9;
 tr20:
-#line 149 "version_sorter.rl"
+#line 142 "version_sorter.rl"
 	{
 			if (overflown) {
 				version->comp[comp_n].string.offset = (uint16_t)(start - string);
@@ -319,15 +309,14 @@ tr20:
 				num_flags |= (1 << comp_n);
 			}
 		}
-#line 164 "version_sorter.rl"
+#line 157 "version_sorter.rl"
 	{
 			comp_n++;
 		}
-#line 127 "version_sorter.rl"
+#line 121 "version_sorter.rl"
 	{
 			if (comp_n >= comp_alloc) {
-				comp_alloc += 4;
-				version = grow_version_number(version, comp_alloc);
+				goto FINALIZE;
 			}
 			start = p;
 		}
@@ -336,7 +325,7 @@ st9:
 	if ( ++p == pe )
 		goto _test_eof9;
 case 9:
-#line 340 "version_sorter.c"
+#line 329 "version_sorter.c"
 	if ( (*p) == 45 )
 		goto tr14;
 	if ( (*p) < -16 ) {
@@ -382,20 +371,19 @@ case 5:
 		goto st4;
 	goto st0;
 tr5:
-#line 127 "version_sorter.rl"
+#line 121 "version_sorter.rl"
 	{
 			if (comp_n >= comp_alloc) {
-				comp_alloc += 4;
-				version = grow_version_number(version, comp_alloc);
+				goto FINALIZE;
 			}
 			start = p;
 		}
-#line 135 "version_sorter.rl"
+#line 128 "version_sorter.rl"
 	{
 			number = 0;
 			overflown = 0;
 		}
-#line 140 "version_sorter.rl"
+#line 133 "version_sorter.rl"
 	{
 			if (!overflown) {
 				uint32_t old_number = number;
@@ -406,29 +394,28 @@ tr5:
 		}
 	goto st10;
 tr15:
-#line 159 "version_sorter.rl"
+#line 152 "version_sorter.rl"
 	{
 			version->comp[comp_n].string.offset = (uint16_t)(start - string);
 			version->comp[comp_n].string.len = (uint16_t)(p - start);
 		}
-#line 164 "version_sorter.rl"
+#line 157 "version_sorter.rl"
 	{
 			comp_n++;
 		}
-#line 127 "version_sorter.rl"
+#line 121 "version_sorter.rl"
 	{
 			if (comp_n >= comp_alloc) {
-				comp_alloc += 4;
-				version = grow_version_number(version, comp_alloc);
+				goto FINALIZE;
 			}
 			start = p;
 		}
-#line 135 "version_sorter.rl"
+#line 128 "version_sorter.rl"
 	{
 			number = 0;
 			overflown = 0;
 		}
-#line 140 "version_sorter.rl"
+#line 133 "version_sorter.rl"
 	{
 			if (!overflown) {
 				uint32_t old_number = number;
@@ -439,7 +426,7 @@ tr15:
 		}
 	goto st10;
 tr21:
-#line 140 "version_sorter.rl"
+#line 133 "version_sorter.rl"
 	{
 			if (!overflown) {
 				uint32_t old_number = number;
@@ -453,7 +440,7 @@ st10:
 	if ( ++p == pe )
 		goto _test_eof10;
 case 10:
-#line 457 "version_sorter.c"
+#line 444 "version_sorter.c"
 	if ( (*p) == 45 )
 		goto tr20;
 	if ( (*p) < -16 ) {
@@ -475,17 +462,16 @@ case 10:
 		goto tr19;
 	goto tr16;
 tr2:
-#line 127 "version_sorter.rl"
+#line 121 "version_sorter.rl"
 	{
 			if (comp_n >= comp_alloc) {
-				comp_alloc += 4;
-				version = grow_version_number(version, comp_alloc);
+				goto FINALIZE;
 			}
 			start = p;
 		}
 	goto st6;
 tr18:
-#line 149 "version_sorter.rl"
+#line 142 "version_sorter.rl"
 	{
 			if (overflown) {
 				version->comp[comp_n].string.offset = (uint16_t)(start - string);
@@ -495,15 +481,14 @@ tr18:
 				num_flags |= (1 << comp_n);
 			}
 		}
-#line 164 "version_sorter.rl"
+#line 157 "version_sorter.rl"
 	{
 			comp_n++;
 		}
-#line 127 "version_sorter.rl"
+#line 121 "version_sorter.rl"
 	{
 			if (comp_n >= comp_alloc) {
-				comp_alloc += 4;
-				version = grow_version_number(version, comp_alloc);
+				goto FINALIZE;
 			}
 			start = p;
 		}
@@ -512,7 +497,7 @@ st6:
 	if ( ++p == pe )
 		goto _test_eof6;
 case 6:
-#line 516 "version_sorter.c"
+#line 501 "version_sorter.c"
 	if ( (*p) == 45 )
 		goto tr4;
 	if ( (*p) < -16 ) {
@@ -537,17 +522,16 @@ case 6:
 		goto tr3;
 	goto st1;
 tr3:
-#line 127 "version_sorter.rl"
+#line 121 "version_sorter.rl"
 	{
 			if (comp_n >= comp_alloc) {
-				comp_alloc += 4;
-				version = grow_version_number(version, comp_alloc);
+				goto FINALIZE;
 			}
 			start = p;
 		}
 	goto st7;
 tr19:
-#line 149 "version_sorter.rl"
+#line 142 "version_sorter.rl"
 	{
 			if (overflown) {
 				version->comp[comp_n].string.offset = (uint16_t)(start - string);
@@ -557,15 +541,14 @@ tr19:
 				num_flags |= (1 << comp_n);
 			}
 		}
-#line 164 "version_sorter.rl"
+#line 157 "version_sorter.rl"
 	{
 			comp_n++;
 		}
-#line 127 "version_sorter.rl"
+#line 121 "version_sorter.rl"
 	{
 			if (comp_n >= comp_alloc) {
-				comp_alloc += 4;
-				version = grow_version_number(version, comp_alloc);
+				goto FINALIZE;
 			}
 			start = p;
 		}
@@ -574,7 +557,7 @@ st7:
 	if ( ++p == pe )
 		goto _test_eof7;
 case 7:
-#line 578 "version_sorter.c"
+#line 561 "version_sorter.c"
 	if ( (*p) == 45 )
 		goto tr4;
 	if ( (*p) < -16 ) {
@@ -614,7 +597,7 @@ case 7:
 	{
 	switch ( cs ) {
 	case 10: 
-#line 149 "version_sorter.rl"
+#line 142 "version_sorter.rl"
 	{
 			if (overflown) {
 				version->comp[comp_n].string.offset = (uint16_t)(start - string);
@@ -624,32 +607,33 @@ case 7:
 				num_flags |= (1 << comp_n);
 			}
 		}
-#line 164 "version_sorter.rl"
+#line 157 "version_sorter.rl"
 	{
 			comp_n++;
 		}
 	break;
 	case 9: 
-#line 159 "version_sorter.rl"
+#line 152 "version_sorter.rl"
 	{
 			version->comp[comp_n].string.offset = (uint16_t)(start - string);
 			version->comp[comp_n].string.len = (uint16_t)(p - start);
 		}
-#line 164 "version_sorter.rl"
+#line 157 "version_sorter.rl"
 	{
 			comp_n++;
 		}
 	break;
-#line 644 "version_sorter.c"
+#line 627 "version_sorter.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 182 "version_sorter.rl"
+#line 175 "version_sorter.rl"
 
 
+FINALIZE:
 	version->original = string;
 	version->num_flags = num_flags;
 	version->size = (int32_t)comp_n;
@@ -662,7 +646,9 @@ rb_version_sort_1(VALUE rb_self, VALUE rb_version_array, compare_callback_t cmp)
 {
 	(void)rb_self;  // Unused.
 
-	struct version_number **versions;
+
+	struct version_number *versions = NULL;
+	struct version_number versions_stack[MAX_ITEMS];
 	long length, i;
 	VALUE *rb_version_ptr;
 
@@ -672,7 +658,11 @@ rb_version_sort_1(VALUE rb_self, VALUE rb_version_array, compare_callback_t cmp)
 	if (!length)
 		return rb_ary_new();
 
-	versions = xcalloc(length, sizeof(struct version_number *));
+	if (length <= MAX_ITEMS) {
+		versions = &versions_stack[0];
+	} else {
+		versions = xcalloc(length, sizeof(struct version_number));
+	}
 
 	for (i = 0; i < length; ++i) {
 		VALUE rb_version, rb_version_string;
@@ -683,19 +673,22 @@ rb_version_sort_1(VALUE rb_self, VALUE rb_version_array, compare_callback_t cmp)
 		else
 			rb_version_string = rb_version;
 
-		versions[i] = parse_version_number(
-				RSTRING_PTR(rb_version_string), RSTRING_LEN(rb_version_string));
-		versions[i]->rb_version = rb_version;
+		parse_version_number(
+				&versions[i],
+				RSTRING_PTR(rb_version_string),
+				RSTRING_LEN(rb_version_string));
+		versions[i].rb_version = rb_version;
 	}
 
-	qsort(versions, (size_t)length, sizeof(struct version_number *), cmp);
+	qsort(versions, (size_t)length, sizeof(struct version_number), cmp);
 	rb_version_ptr = RARRAY_PTR(rb_version_array);
 
 	for (i = 0; i < length; ++i) {
-		rb_version_ptr[i] = versions[i]->rb_version;
-		xfree(versions[i]);
+		rb_version_ptr[i] = versions[i].rb_version;
 	}
-	xfree(versions);
+	if (length > MAX_ITEMS) {
+		xfree(versions);
+	}
 	return rb_version_array;
 }
 
