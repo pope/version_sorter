@@ -165,8 +165,15 @@ parse_version_number(const char *string, long len)
 			comp_n++;
 		}
 
+		non_printable_ascii = (0x01..0x1f | 0x7f);
+		two_byte_utf8       = (0xc2..0xdf 0x80..0xbf);
+		three_byte_utf8     = (0xe0..0xef 0x80..0xbf 0x80..0xbf);
+		four_byte_utf8      = (0xf0..0xf4 0x80..0xbf 0x80..0xbf 0x80..0xbf);
+		letter              = (alpha | two_byte_utf8 | three_byte_utf8 |
+			                     four_byte_utf8);
+
 		number = digit+ >start >num_start @num_process %num_end %end;
-		word   = ("-" | alpha) >start alpha* %word_end %end;
+		word   = ("-" | letter) >start letter* %word_end %end;
 
 		main := (any* :>> (word | number))**;
 

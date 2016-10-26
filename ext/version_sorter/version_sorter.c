@@ -24,11 +24,11 @@ void Init_version_sorter(void);
 
 
 #line 27 "version_sorter.c"
-static const int parser_start = 1;
-static const int parser_first_final = 1;
-static const int parser_error = -1;
+static const int parser_start = 8;
+static const int parser_first_final = 8;
+static const int parser_error = 0;
 
-static const int parser_en_main = 1;
+static const int parser_en_main = 8;
 
 
 #line 26 "version_sorter.rl"
@@ -144,19 +144,28 @@ parse_version_number(const char *string, long len)
 		goto _test_eof;
 	switch ( cs )
 	{
-case 1:
+case 8:
 	if ( (*p) == 45 )
-		goto tr1;
-	if ( (*p) < 65 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr2;
-	} else if ( (*p) > 90 ) {
-		if ( 97 <= (*p) && (*p) <= 122 )
+		goto tr4;
+	if ( (*p) < -16 ) {
+		if ( (*p) > -33 ) {
+			if ( -32 <= (*p) && (*p) <= -17 )
+				goto tr2;
+		} else if ( (*p) >= -62 )
 			goto tr1;
+	} else if ( (*p) > -12 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto tr5;
+		} else if ( (*p) > 90 ) {
+			if ( 97 <= (*p) && (*p) <= 122 )
+				goto tr4;
+		} else
+			goto tr4;
 	} else
-		goto tr1;
-	goto st0;
-tr3:
+		goto tr3;
+	goto st1;
+tr12:
 #line 159 "version_sorter.rl"
 	{
 			version->comp[comp_n].string.offset = (uint16_t)(start - string);
@@ -166,8 +175,8 @@ tr3:
 	{
 			comp_n++;
 		}
-	goto st0;
-tr7:
+	goto st1;
+tr16:
 #line 149 "version_sorter.rl"
 	{
 			if (overflown) {
@@ -182,23 +191,32 @@ tr7:
 	{
 			comp_n++;
 		}
-	goto st0;
-st0:
+	goto st1;
+st1:
 	if ( ++p == pe )
-		goto _test_eof0;
-case 0:
-#line 191 "version_sorter.c"
+		goto _test_eof1;
+case 1:
+#line 200 "version_sorter.c"
 	if ( (*p) == 45 )
-		goto tr1;
-	if ( (*p) < 65 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr2;
-	} else if ( (*p) > 90 ) {
-		if ( 97 <= (*p) && (*p) <= 122 )
+		goto tr4;
+	if ( (*p) < -16 ) {
+		if ( (*p) > -33 ) {
+			if ( -32 <= (*p) && (*p) <= -17 )
+				goto tr2;
+		} else if ( (*p) >= -62 )
 			goto tr1;
+	} else if ( (*p) > -12 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto tr5;
+		} else if ( (*p) > 90 ) {
+			if ( 97 <= (*p) && (*p) <= 122 )
+				goto tr4;
+		} else
+			goto tr4;
 	} else
-		goto tr1;
-	goto st0;
+		goto tr3;
+	goto st1;
 tr1:
 #line 127 "version_sorter.rl"
 	{
@@ -209,26 +227,7 @@ tr1:
 			start = p;
 		}
 	goto st2;
-tr4:
-#line 159 "version_sorter.rl"
-	{
-			version->comp[comp_n].string.offset = (uint16_t)(start - string);
-			version->comp[comp_n].string.len = (uint16_t)(p - start);
-		}
-#line 164 "version_sorter.rl"
-	{
-			comp_n++;
-		}
-#line 127 "version_sorter.rl"
-	{
-			if (comp_n >= comp_alloc) {
-				comp_alloc += 4;
-				version = grow_version_number(version, comp_alloc);
-			}
-			start = p;
-		}
-	goto st2;
-tr8:
+tr17:
 #line 149 "version_sorter.rl"
 	{
 			if (overflown) {
@@ -256,19 +255,133 @@ st2:
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
-#line 260 "version_sorter.c"
+#line 259 "version_sorter.c"
 	if ( (*p) == 45 )
 		goto tr4;
-	if ( (*p) < 65 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr5;
-	} else if ( (*p) > 90 ) {
-		if ( 97 <= (*p) && (*p) <= 122 )
-			goto st2;
+	if ( (*p) < -16 ) {
+		if ( (*p) < -62 ) {
+			if ( (*p) <= -65 )
+				goto st9;
+		} else if ( (*p) > -33 ) {
+			if ( -32 <= (*p) && (*p) <= -17 )
+				goto tr2;
+		} else
+			goto tr1;
+	} else if ( (*p) > -12 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto tr5;
+		} else if ( (*p) > 90 ) {
+			if ( 97 <= (*p) && (*p) <= 122 )
+				goto tr4;
+		} else
+			goto tr4;
 	} else
-		goto st2;
-	goto tr3;
-tr2:
+		goto tr3;
+	goto st1;
+tr4:
+#line 127 "version_sorter.rl"
+	{
+			if (comp_n >= comp_alloc) {
+				comp_alloc += 4;
+				version = grow_version_number(version, comp_alloc);
+			}
+			start = p;
+		}
+	goto st9;
+tr14:
+#line 159 "version_sorter.rl"
+	{
+			version->comp[comp_n].string.offset = (uint16_t)(start - string);
+			version->comp[comp_n].string.len = (uint16_t)(p - start);
+		}
+#line 164 "version_sorter.rl"
+	{
+			comp_n++;
+		}
+#line 127 "version_sorter.rl"
+	{
+			if (comp_n >= comp_alloc) {
+				comp_alloc += 4;
+				version = grow_version_number(version, comp_alloc);
+			}
+			start = p;
+		}
+	goto st9;
+tr20:
+#line 149 "version_sorter.rl"
+	{
+			if (overflown) {
+				version->comp[comp_n].string.offset = (uint16_t)(start - string);
+				version->comp[comp_n].string.len = (uint16_t)(p - start);
+			} else {
+				version->comp[comp_n].number = number;
+				num_flags |= (1 << comp_n);
+			}
+		}
+#line 164 "version_sorter.rl"
+	{
+			comp_n++;
+		}
+#line 127 "version_sorter.rl"
+	{
+			if (comp_n >= comp_alloc) {
+				comp_alloc += 4;
+				version = grow_version_number(version, comp_alloc);
+			}
+			start = p;
+		}
+	goto st9;
+st9:
+	if ( ++p == pe )
+		goto _test_eof9;
+case 9:
+#line 340 "version_sorter.c"
+	if ( (*p) == 45 )
+		goto tr14;
+	if ( (*p) < -16 ) {
+		if ( (*p) > -33 ) {
+			if ( -32 <= (*p) && (*p) <= -17 )
+				goto st4;
+		} else if ( (*p) >= -62 )
+			goto st3;
+	} else if ( (*p) > -12 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto tr15;
+		} else if ( (*p) > 90 ) {
+			if ( 97 <= (*p) && (*p) <= 122 )
+				goto st9;
+		} else
+			goto st9;
+	} else
+		goto st5;
+	goto tr12;
+st3:
+	if ( ++p == pe )
+		goto _test_eof3;
+case 3:
+	if ( (*p) <= -65 )
+		goto st9;
+	goto st0;
+st0:
+cs = 0;
+	goto _out;
+st4:
+	if ( ++p == pe )
+		goto _test_eof4;
+case 4:
+	if ( (*p) <= -65 )
+		goto st3;
+	goto st0;
+st5:
+	if ( ++p == pe )
+		goto _test_eof5;
+case 5:
+	if ( (*p) <= -65 )
+		goto st4;
+	goto st0;
+tr5:
 #line 127 "version_sorter.rl"
 	{
 			if (comp_n >= comp_alloc) {
@@ -291,8 +404,8 @@ tr2:
 					overflown = 1;
 			}
 		}
-	goto st3;
-tr5:
+	goto st10;
+tr15:
 #line 159 "version_sorter.rl"
 	{
 			version->comp[comp_n].string.offset = (uint16_t)(start - string);
@@ -324,8 +437,8 @@ tr5:
 					overflown = 1;
 			}
 		}
-	goto st3;
-tr9:
+	goto st10;
+tr21:
 #line 140 "version_sorter.rl"
 	{
 			if (!overflown) {
@@ -335,33 +448,172 @@ tr9:
 					overflown = 1;
 			}
 		}
-	goto st3;
-st3:
+	goto st10;
+st10:
 	if ( ++p == pe )
-		goto _test_eof3;
-case 3:
-#line 344 "version_sorter.c"
+		goto _test_eof10;
+case 10:
+#line 457 "version_sorter.c"
 	if ( (*p) == 45 )
-		goto tr8;
-	if ( (*p) < 65 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr9;
-	} else if ( (*p) > 90 ) {
-		if ( 97 <= (*p) && (*p) <= 122 )
-			goto tr8;
+		goto tr20;
+	if ( (*p) < -16 ) {
+		if ( (*p) > -33 ) {
+			if ( -32 <= (*p) && (*p) <= -17 )
+				goto tr18;
+		} else if ( (*p) >= -62 )
+			goto tr17;
+	} else if ( (*p) > -12 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto tr21;
+		} else if ( (*p) > 90 ) {
+			if ( 97 <= (*p) && (*p) <= 122 )
+				goto tr20;
+		} else
+			goto tr20;
 	} else
-		goto tr8;
-	goto tr7;
+		goto tr19;
+	goto tr16;
+tr2:
+#line 127 "version_sorter.rl"
+	{
+			if (comp_n >= comp_alloc) {
+				comp_alloc += 4;
+				version = grow_version_number(version, comp_alloc);
+			}
+			start = p;
+		}
+	goto st6;
+tr18:
+#line 149 "version_sorter.rl"
+	{
+			if (overflown) {
+				version->comp[comp_n].string.offset = (uint16_t)(start - string);
+				version->comp[comp_n].string.len = (uint16_t)(p - start);
+			} else {
+				version->comp[comp_n].number = number;
+				num_flags |= (1 << comp_n);
+			}
+		}
+#line 164 "version_sorter.rl"
+	{
+			comp_n++;
+		}
+#line 127 "version_sorter.rl"
+	{
+			if (comp_n >= comp_alloc) {
+				comp_alloc += 4;
+				version = grow_version_number(version, comp_alloc);
+			}
+			start = p;
+		}
+	goto st6;
+st6:
+	if ( ++p == pe )
+		goto _test_eof6;
+case 6:
+#line 516 "version_sorter.c"
+	if ( (*p) == 45 )
+		goto tr4;
+	if ( (*p) < -16 ) {
+		if ( (*p) < -62 ) {
+			if ( (*p) <= -65 )
+				goto st2;
+		} else if ( (*p) > -33 ) {
+			if ( -32 <= (*p) && (*p) <= -17 )
+				goto tr2;
+		} else
+			goto tr1;
+	} else if ( (*p) > -12 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto tr5;
+		} else if ( (*p) > 90 ) {
+			if ( 97 <= (*p) && (*p) <= 122 )
+				goto tr4;
+		} else
+			goto tr4;
+	} else
+		goto tr3;
+	goto st1;
+tr3:
+#line 127 "version_sorter.rl"
+	{
+			if (comp_n >= comp_alloc) {
+				comp_alloc += 4;
+				version = grow_version_number(version, comp_alloc);
+			}
+			start = p;
+		}
+	goto st7;
+tr19:
+#line 149 "version_sorter.rl"
+	{
+			if (overflown) {
+				version->comp[comp_n].string.offset = (uint16_t)(start - string);
+				version->comp[comp_n].string.len = (uint16_t)(p - start);
+			} else {
+				version->comp[comp_n].number = number;
+				num_flags |= (1 << comp_n);
+			}
+		}
+#line 164 "version_sorter.rl"
+	{
+			comp_n++;
+		}
+#line 127 "version_sorter.rl"
+	{
+			if (comp_n >= comp_alloc) {
+				comp_alloc += 4;
+				version = grow_version_number(version, comp_alloc);
+			}
+			start = p;
+		}
+	goto st7;
+st7:
+	if ( ++p == pe )
+		goto _test_eof7;
+case 7:
+#line 578 "version_sorter.c"
+	if ( (*p) == 45 )
+		goto tr4;
+	if ( (*p) < -16 ) {
+		if ( (*p) < -62 ) {
+			if ( (*p) <= -65 )
+				goto st6;
+		} else if ( (*p) > -33 ) {
+			if ( -32 <= (*p) && (*p) <= -17 )
+				goto tr2;
+		} else
+			goto tr1;
+	} else if ( (*p) > -12 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto tr5;
+		} else if ( (*p) > 90 ) {
+			if ( 97 <= (*p) && (*p) <= 122 )
+				goto tr4;
+		} else
+			goto tr4;
+	} else
+		goto tr3;
+	goto st1;
 	}
-	_test_eof0: cs = 0; goto _test_eof; 
+	_test_eof1: cs = 1; goto _test_eof; 
 	_test_eof2: cs = 2; goto _test_eof; 
+	_test_eof9: cs = 9; goto _test_eof; 
 	_test_eof3: cs = 3; goto _test_eof; 
+	_test_eof4: cs = 4; goto _test_eof; 
+	_test_eof5: cs = 5; goto _test_eof; 
+	_test_eof10: cs = 10; goto _test_eof; 
+	_test_eof6: cs = 6; goto _test_eof; 
+	_test_eof7: cs = 7; goto _test_eof; 
 
 	_test_eof: {}
 	if ( p == eof )
 	{
 	switch ( cs ) {
-	case 3: 
+	case 10: 
 #line 149 "version_sorter.rl"
 	{
 			if (overflown) {
@@ -377,7 +629,7 @@ case 3:
 			comp_n++;
 		}
 	break;
-	case 2: 
+	case 9: 
 #line 159 "version_sorter.rl"
 	{
 			version->comp[comp_n].string.offset = (uint16_t)(start - string);
@@ -388,13 +640,14 @@ case 3:
 			comp_n++;
 		}
 	break;
-#line 392 "version_sorter.c"
+#line 644 "version_sorter.c"
 	}
 	}
 
+	_out: {}
 	}
 
-#line 175 "version_sorter.rl"
+#line 182 "version_sorter.rl"
 
 
 	version->original = string;
